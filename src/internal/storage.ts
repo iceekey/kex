@@ -26,8 +26,8 @@ class KxStorage<T = any> {
       this._history.pop();
     }
 
-    for (let i; i < this._listeners.length; i++) {
-      this._listeners[i](this._state, change);
+    for (let listener of this._listeners) {
+      listener(this._state, change);
     }
   }
 
@@ -47,8 +47,8 @@ class KxStorage<T = any> {
   }
 
   replaceReducers(...nextReducers: KxReducer<T>[]): KxStorage<T> {
-    for (let i = 0; i < nextReducers.length; i++) {
-      if (typeof nextReducers[i] !== 'function') {
+    for (let reducer of nextReducers) {
+      if (typeof reducer !== 'function') {
         throw new Error('reducer should be a function');
       }
     }
