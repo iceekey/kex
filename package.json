@@ -1,12 +1,11 @@
 {
   "name": "kex",
-  "version": "0.0.0-development",
+  "version": "0.0.0",
   "description": "Kex is a tiny library for state managenent for JavaScript projects",
-  "main": "./dist/kex.js",
-  "typings": "./dist/kex.d.ts",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
   "scripts": {
-    "start": "gulp build",
-    "build": "cross-env NODE_ENV=production gulp build",
+    "start": "tsc",
     "test": "jest",
     "travis-deploy-once": "travis-deploy-once",
     "semantic-release": "semantic-release"
@@ -30,20 +29,13 @@
   "homepage": "https://github.com/iceekey/kex#readme",
   "devDependencies": {
     "@types/jest": "^23.3.2",
-    "cross-env": "^5.2.0",
-    "gulp": "^3.9.1",
     "husky": "^0.14.3",
     "jest": "^23.6.0",
     "lint-staged": "^7.2.2",
-    "rollup": "^0.65.2",
-    "rollup-plugin-multi-entry": "^2.0.2",
-    "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-typescript2": "^0.17.0",
-    "rollup-plugin-uglify": "^5.0.2",
-    "rxjs": "^6.3.2",
     "semantic-release": "^15.9.14",
     "travis-deploy-once": "^5.0.7",
     "ts-jest": "^23.1.4",
-    "typescript": "^3.0.3"
+    "typescript": "^3.0.3",
+    "uglify-js": "^3.4.9"
   }
 }

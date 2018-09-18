@@ -1,33 +1,13 @@
-export function isObject(val) {
-  return Array.isArray(val) === false && typeof val === 'object' && val !== null;
-}
+import { isObject } from '../utils/is-object';
+import { KxAction } from './action';
+import { KxResolvedModifier } from './resolved-modifier';
+import { KxReducer } from './reducer';
+import { KxListener } from './listener';
+import { KxChange } from './change';
+import { applyModifiers } from './apply-modifiers';
+import { resolveModifiers } from './resolve-modifiers';
 
-export interface KxAction {
-  type: string;
-  payload?: any;
-}
-
-export type KxResolvedModifier<T> = Partial<T>;
-export type KxModifier<T> = Iterable<KxResolvedModifier<T>> | Iterable<Promise<KxResolvedModifier<T>>>;
-
-export async function resolveModifiers<T>(...modifiers: Array<KxModifier<T>>): Promise<Array<KxResolvedModifier<T>>> {
-  throw new Error('function resolveModifiers() not implemented yet');
-}
-
-export function applyModifiers<T>(obj: T, ...resolvedModifiers: KxResolvedModifier<T>[]): T {
-  throw new Error('function applyModifiers() not implemented yet');
-}
-
-export type KxReducer<T = any> = (action: KxAction) => KxModifier<T>;
-
-export interface KxChange {
-  action: string;
-  changes: object[];
-}
-
-export type KxListener = (state: any, change: KxChange) => any;
-
-class KxStore<T = any> {
+class KxStorage<T = any> {
   private _reducers: KxReducer<T>[] = [];
   private _listeners: KxListener[] = [];
   private _state: any = {
@@ -66,7 +46,7 @@ class KxStore<T = any> {
     return this._state;
   }
 
-  replaceReducers(...nextReducers: KxReducer<T>[]): KxStore<T> {
+  replaceReducers(...nextReducers: KxReducer<T>[]): KxStorage<T> {
     for (let i = 0; i < nextReducers.length; i++) {
       if (typeof nextReducers[i] !== 'function') {
         throw new Error('reducer should be a function');
@@ -78,7 +58,7 @@ class KxStore<T = any> {
     return this;
   }
 
-  addStorageListener(listener: KxListener): KxStore<T> {
+  addStorageListener(listener: KxListener): KxStorage<T> {
     if (typeof listener !== 'function') {
       throw new Error('storage listener should be a function');
     }
@@ -88,7 +68,7 @@ class KxStore<T = any> {
     return this;
   }
 
-  removeStorageListener(listener: Function): KxStore<T> {
+  removeStorageListener(listener: Function): KxStorage<T> {
     this._listeners = this._listeners.filter(l => l !== listener);
 
     return this;
@@ -132,8 +112,4 @@ class KxStore<T = any> {
   }
 }
 
-export const kxStore = new KxStore();
-
-if (this.window === this) {
-  window['__get___'] = kxStore.get;
-}
+export const kxStore = new KxStorage();
