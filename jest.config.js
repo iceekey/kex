@@ -3,5 +3,6 @@ module.exports = {
     '.*\\.ts$': 'ts-jest'
   },
   testRegex: '.*test\\.ts$',
-  moduleFileExtensions: ['ts', 'js']
+  moduleFileExtensions: ['ts', 'js'],
+  collectCoverage: true
 };

@@ -10,7 +10,8 @@
     "target": "es5",
     "declaration": true,
     "outDir": "./dist",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "sourceMap": true
   },
   "include": [
     "./src/**/*.ts"

@@ -15,14 +15,14 @@ class KxStorage<T = any> {
   };
 
   private _historyMaxSize = 10;
-  private _history: KxChange[];
+  private _history: KxChange[] = [];
 
   constructor() {}
 
   private _broadcastChange(change: KxChange) {
-    this._history.push(change);
+    this._history = [change, ...this._history];
 
-    if (this._history.length > this._historyMaxSize) {
+    while (this._history.length > this._historyMaxSize) {
       this._history.pop();
     }
 
@@ -31,11 +31,15 @@ class KxStorage<T = any> {
     }
   }
 
+  history(): KxChange[] {
+    return this._history;
+  }
+
   get(): T {
     return this._state as T;
   }
 
-  async update(resolvedModifier: KxResolvedModifier<T>): Promise<T> {
+  update(resolvedModifier: KxResolvedModifier<T>): T {
     this._state = applyModifiers(this._state, resolvedModifier);
 
     this._broadcastChange({
@@ -44,6 +48,26 @@ class KxStorage<T = any> {
     } as KxChange);
 
     return this._state;
+  }
+
+  clear() {
+    const clearModifier = Object.create(null);
+
+    for (let key in this._state) {
+      if (!Object.prototype.hasOwnProperty.call(this._state, key)) {
+        continue;
+      }
+
+      if (key === 'actions') {
+        clearModifier[key] = [];
+
+        continue;
+      }
+
+      clearModifier[key] = undefined;
+    }
+
+    return this.update(clearModifier);
   }
 
   replaceReducers(...nextReducers: KxReducer<T>[]): KxStorage<T> {
@@ -76,7 +100,7 @@ class KxStorage<T = any> {
 
   async dispatch(action: KxAction): Promise<T> {
     if (!isObject(action)) {
-      throw new Error('action should be an action');
+      throw new Error('action should be an object');
     }
 
     if (typeof action.type !== 'string') {
@@ -95,6 +119,7 @@ class KxStorage<T = any> {
 
       this._broadcastChange({ action: action.type, changes: resolvedModifiers });
 
+      console.log(nextAction);
       return this.dispatch(nextAction);
     }
 

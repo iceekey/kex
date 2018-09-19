@@ -13,12 +13,18 @@ export function applyModifiers<T>(obj: T, ...resolvedModifiers: KxResolvedModifi
 
     for (let key in resolvedModifier) {
       if (!Object.prototype.hasOwnProperty.call(obj, key) || !isObject(obj[key]) || !isObject(resolvedModifier[key])) {
+        if (resolvedModifier[key] === undefined) {
+          delete obj[key];
+
+          continue;
+        }
+
         obj[key] = resolvedModifier[key];
 
         continue;
       }
 
-      obj[key] = Object.assign(obj[key], resolvedModifier[key]);
+      applyModifiers(obj[key], resolvedModifier[key]);
     }
   }
 

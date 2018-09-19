@@ -37,5 +37,8 @@
     "ts-jest": "^23.1.4",
     "typescript": "^3.0.3",
     "uglify-js": "^3.4.9"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
