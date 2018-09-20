@@ -1,7 +1,7 @@
 {
   "name": "kex",
   "version": "0.0.0",
-  "description": "Kex is a tiny library for state managenent for JavaScript projects",
+  "description": "Kex is a tiny library for state managenent in JavaScript projects",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {

@@ -1,6 +1,6 @@
 # Kex
 
-Kex is a tiny library for state managenent for JavaScript/TypeScript projects.
+Kex is a tiny library for state managenent in JavaScript/TypeScript projects.
 
 ## Installation is simple and plain
 
