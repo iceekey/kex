@@ -5,7 +5,7 @@ import { KxReducer } from './reducer';
 import { KxListener } from './listener';
 import { KxChange } from './change';
 import { applyModifiers } from './apply-modifiers';
-import { resolveModifiers } from './resolve-modifiers';
+import { resolveModifier } from './resolve-modifier';
 
 class KxStorage<T = any> {
   private _reducers: KxReducer<T>[] = [];
@@ -44,7 +44,7 @@ class KxStorage<T = any> {
 
     this._broadcastChange({
       action: null,
-      changes: [resolvedModifier]
+      changes: resolvedModifier
     } as KxChange);
 
     return this._state;
@@ -107,8 +107,14 @@ class KxStorage<T = any> {
       throw new Error('action type should be a string');
     }
 
-    const resolvedModifiers = await resolveModifiers(...this._reducers.map(reducer => reducer(action)));
-    this._state = applyModifiers(this._state, ...resolvedModifiers);
+    let changes = Object.create(null);
+
+    for (let reducer of this._reducers) {
+      const resolvedModifiers = await resolveModifier(reducer(action));
+
+      this._state = applyModifiers(this._state, ...resolvedModifiers);
+      changes = applyModifiers(changes, ...resolvedModifiers);
+    }
 
     if (!Array.isArray(this._state.actions)) {
       throw new Error('field actions in state should be an array');
@@ -118,12 +124,12 @@ class KxStorage<T = any> {
       const nextAction = this._state.actions[0];
 
       this._state.actions = this._state.actions.filter(action => action !== nextAction);
-      this._broadcastChange({ action: action.type, changes: resolvedModifiers });
+      this._broadcastChange({ action: action.type, changes });
 
       return await this.dispatch(nextAction);
     }
 
-    this._broadcastChange({ action: action.type, changes: resolvedModifiers });
+    this._broadcastChange({ action: action.type, changes });
 
     return this._state;
   }
@@ -137,4 +143,4 @@ class KxStorage<T = any> {
   }
 }
 
-export const kxStore = new KxStorage();
+export const store = new KxStorage();

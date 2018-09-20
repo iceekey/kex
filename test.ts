@@ -1,4 +1,4 @@
-import { applyModifiers, resolveModifiers, kxStore } from './src';
+import { applyModifiers, resolveModifier, store } from './src';
 import { KxAction } from './src/internal/action';
 
 describe('apply modifiers tests', () => {
@@ -90,79 +90,62 @@ describe('apply modifiers tests', () => {
 
 describe('resolve modifiers tests', () => {
   test('resolve modifiers should not throw an error on wrong input', async () => {
-    await expect(resolveModifiers('42' as any)).resolves.toEqual([]);
-    await expect(resolveModifiers(42 as any)).resolves.toEqual([]);
-    await expect(resolveModifiers(true as any)).resolves.toEqual([]);
-    await expect(resolveModifiers(NaN as any)).resolves.toEqual([]);
-    await expect(resolveModifiers(null)).resolves.toEqual([]);
-    await expect(resolveModifiers(undefined)).resolves.toEqual([]);
+    await expect(resolveModifier('42' as any)).resolves.toEqual([]);
+    await expect(resolveModifier(42 as any)).resolves.toEqual([]);
+    await expect(resolveModifier(true as any)).resolves.toEqual([]);
+    await expect(resolveModifier(NaN as any)).resolves.toEqual([]);
+    await expect(resolveModifier(null)).resolves.toEqual([]);
+    await expect(resolveModifier(undefined)).resolves.toEqual([]);
   });
 
-  test('resolve modifiers should pass invalid or empty iterable', () => {
-    expect(
-      resolveModifiers<any>(
+  test('resolve modifiers should properly resolve iterators', async () => {
+    await expect(
+      resolveModifier<any>(
         (function*() {
-          yield { foo: '1' };
-        })(),
-        null,
-        (function*() {
-          yield Promise.resolve({ foo: '2' });
-        })(),
-        undefined,
-        (function*() {
-          yield Promise.resolve({ foo: '3' });
-        })(),
-        (function*() {
-          yield { foo: '4' };
-        })(),
-        (function*() {})()
-      )
-    ).resolves.toEqual([{ foo: '1' }, { foo: '2' }, { foo: '3' }, { foo: '4' }]);
-  });
-
-  test('resolve modifiers should properly resolve iterators', () => {
-    expect(
-      resolveModifiers<any>(
-        (function*() {
-          yield { foo: '1' };
-          yield { foo: '2' };
-          yield Promise.resolve({ foo: '3' });
-          yield { foo: '4' };
+          yield { foo: 'bar' };
         })()
       )
-    ).resolves.toEqual([{ foo: '1' }, { foo: '2' }, { foo: '3' }, { foo: '4' }]);
+    ).resolves.toEqual([{ foo: 'bar' }]);
+
+    await expect(
+      resolveModifier<any>(
+        (function*() {
+          yield Promise.resolve({ foo: 'bar' });
+        })()
+      )
+    ).resolves.toEqual([{ foo: 'bar' }]);
   });
 });
 
 describe('storage tests', () => {
   test('storage should update properly', () => {
-    kxStore.update({ foo: 'foo' });
-    kxStore.update({ bar: 'bar' });
+    store.update({ foo: 'foo' });
+    store.update({ bar: 'bar' });
 
-    expect(kxStore.get()).toEqual({ foo: 'foo', bar: 'bar', actions: [] });
+    expect(store.get()).toEqual({ foo: 'foo', bar: 'bar', actions: [] });
   });
 
   test('storage should clear properly', () => {
-    kxStore.update({ foo: 'foo', bar: 'bar' });
-    kxStore.clear();
+    store.update({ foo: 'foo', bar: 'bar' });
+    store.clear();
 
-    expect(kxStore.get()).toEqual({ actions: [] });
+    expect(store.get()).toEqual({ actions: [] });
   });
 
   test('replace reducers should error on wrong input', () => {
-    expect(() => kxStore.replaceReducers('42' as any)).toThrowError();
-    expect(() => kxStore.replaceReducers(42 as any)).toThrowError();
-    expect(() => kxStore.replaceReducers(true as any)).toThrowError();
-    expect(() => kxStore.replaceReducers(NaN as any)).toThrowError();
-    expect(() => kxStore.replaceReducers(null)).toThrowError();
-    expect(() => kxStore.replaceReducers(undefined)).toThrowError();
-    expect(() => kxStore.replaceReducers([] as any)).toThrowError();
-    expect(() => kxStore.replaceReducers({} as any)).toThrowError();
+    expect(() => store.replaceReducers('42' as any)).toThrowError();
+    expect(() => store.replaceReducers(42 as any)).toThrowError();
+    expect(() => store.replaceReducers(true as any)).toThrowError();
+    expect(() => store.replaceReducers(NaN as any)).toThrowError();
+    expect(() => store.replaceReducers(null)).toThrowError();
+    expect(() => store.replaceReducers(undefined)).toThrowError();
+    expect(() => store.replaceReducers([] as any)).toThrowError();
+    expect(() => store.replaceReducers({} as any)).toThrowError();
   });
 
   test('replace reducers should work properly', () => {
     expect(
-      kxStore.replaceReducers(
+      store.replaceReducers(
         function*(action: KxAction) {
           if (action.type !== 'FOO') {
             return;
@@ -175,7 +158,24 @@ describe('storage tests', () => {
             return;
           }
 
-          yield Promise.resolve({ bar: action.payload });
+          yield new Promise(resolve => {
+            setTimeout(() => {
+              resolve({ bar: action.payload });
+            }, Number(action.payload));
+          });
+        },
+        function*(action: KxAction) {
+          if (action.type !== 'SET') {
+            return;
+          }
+
+          const { bar } = store.get();
+
+          yield new Promise(resolve => {
+            setTimeout(() => {
+              resolve({ baz: bar });
+            }, Number(action.payload));
+          });
         },
         function*(action: KxAction) {
           if (action.type !== 'INVOKE') {
@@ -187,108 +187,110 @@ describe('storage tests', () => {
           });
         }
       )
-    ).toBe(kxStore);
+    ).toBe(store);
   });
 
   test('storage dispatch should throw an error in case of wrong input', async () => {
-    await expect(kxStore.dispatch('42' as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch(42 as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch(true as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch(NaN as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch(null)).rejects.toThrowError();
-    await expect(kxStore.dispatch(undefined)).rejects.toThrowError();
-    await expect(kxStore.dispatch([] as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({} as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: 42 } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: true } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: NaN } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: null } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: undefined } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: [] } as any)).rejects.toThrowError();
-    await expect(kxStore.dispatch({ type: {} } as any)).rejects.toThrowError();
+    await expect(store.dispatch('42' as any)).rejects.toThrowError();
+    await expect(store.dispatch(42 as any)).rejects.toThrowError();
+    await expect(store.dispatch(true as any)).rejects.toThrowError();
+    await expect(store.dispatch(NaN as any)).rejects.toThrowError();
+    await expect(store.dispatch(null)).rejects.toThrowError();
+    await expect(store.dispatch(undefined)).rejects.toThrowError();
+    await expect(store.dispatch([] as any)).rejects.toThrowError();
+    await expect(store.dispatch({} as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: 42 } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: true } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: NaN } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: null } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: undefined } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: [] } as any)).rejects.toThrowError();
+    await expect(store.dispatch({ type: {} } as any)).rejects.toThrowError();
   });
 
   test('storage dispatch should work properly on simple actions', async () => {
-    expect(await kxStore.dispatch({ type: 'FOO' })).toEqual({ foo: 'bar', actions: [] });
+    expect(await store.dispatch({ type: 'FOO' })).toEqual({ foo: 'bar', actions: [] });
   });
 
   test('storage dispatch should work properly on actions with payload', async () => {
-    expect(await kxStore.dispatch({ type: 'SET', payload: 'test' })).toEqual({
+    expect(await store.dispatch({ type: 'SET', payload: '250' })).toEqual({
       foo: 'bar',
-      bar: 'test',
+      bar: '250',
+      baz: '250',
       actions: []
     });
   });
 
   test('storage dispatch for chained actions should work properly', async () => {
-    kxStore.clear();
+    store.clear();
 
     expect(
-      await kxStore.dispatch({
+      await store.dispatch({
         type: 'INVOKE',
-        payload: [{ type: 'SET', payload: 'foo' }, { type: 'SET', payload: 'test' }, { type: 'FOO' }]
+        payload: [{ type: 'SET', payload: '450' }, { type: 'SET', payload: '250' }, { type: 'FOO' }]
       })
     ).toEqual({
       foo: 'bar',
-      bar: 'test',
+      bar: '250',
+      baz: '250',
       actions: []
     });
   });
 
   test('storage dispatch should error if actoins are not valid', async () => {
-    kxStore.clear();
+    store.clear();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: '42'
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: 42
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: true
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: NaN
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: null
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: undefined
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: {}
       })
     ).rejects.toThrowError();
 
     await expect(
-      kxStore.dispatch({
+      store.dispatch({
         type: 'INVOKE',
         payload: () => {}
       })
@@ -296,87 +298,87 @@ describe('storage tests', () => {
   });
 
   test('change history max size should throw an error on wrong input', async () => {
-    expect(() => kxStore.setHistoryMaxSize('42' as any)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize(true as any)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize(NaN as any)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize(null)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize(undefined)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize([] as any)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize({} as any)).toThrowError();
-    expect(() => kxStore.setHistoryMaxSize((() => {}) as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize('42' as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize(true as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize(NaN as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize(null)).toThrowError();
+    expect(() => store.setHistoryMaxSize(undefined)).toThrowError();
+    expect(() => store.setHistoryMaxSize([] as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize({} as any)).toThrowError();
+    expect(() => store.setHistoryMaxSize((() => {}) as any)).toThrowError();
   });
 
   test('history should work properly', async () => {
-    kxStore.setHistoryMaxSize(3);
-    kxStore.clear();
+    store.setHistoryMaxSize(3);
+    store.clear();
 
     await expect(
-      kxStore.dispatch({ type: 'FOO' }).then(() => {
-        kxStore.update({ test: 'test' });
-        kxStore.clear();
-        return Promise.resolve(kxStore.history());
+      store.dispatch({ type: 'FOO' }).then(() => {
+        store.update({ test: 'test' });
+        store.clear();
+        return Promise.resolve(store.history());
       })
     ).resolves.toEqual([
-      { action: null, changes: [{ actions: [], foo: undefined, test: undefined }] },
-      { action: null, changes: [{ test: 'test' }] },
-      { action: 'FOO', changes: [{ foo: 'bar' }] }
+      { action: null, changes: { actions: [], foo: undefined, test: undefined } },
+      { action: null, changes: { test: 'test' } },
+      { action: 'FOO', changes: { foo: 'bar' } }
     ]);
   });
 
   test('listeners should throw an error on wrong input', () => {
-    expect(() => kxStore.addStorageListener('42' as any)).toThrowError();
-    expect(() => kxStore.addStorageListener(42 as any)).toThrowError();
-    expect(() => kxStore.addStorageListener(true as any)).toThrowError();
-    expect(() => kxStore.addStorageListener(NaN as any)).toThrowError();
-    expect(() => kxStore.addStorageListener(null)).toThrowError();
-    expect(() => kxStore.addStorageListener(undefined)).toThrowError();
-    expect(() => kxStore.addStorageListener([] as any)).toThrowError();
-    expect(() => kxStore.addStorageListener({} as any)).toThrowError();
+    expect(() => store.addStorageListener('42' as any)).toThrowError();
+    expect(() => store.addStorageListener(42 as any)).toThrowError();
+    expect(() => store.addStorageListener(true as any)).toThrowError();
+    expect(() => store.addStorageListener(NaN as any)).toThrowError();
+    expect(() => store.addStorageListener(null)).toThrowError();
+    expect(() => store.addStorageListener(undefined)).toThrowError();
+    expect(() => store.addStorageListener([] as any)).toThrowError();
+    expect(() => store.addStorageListener({} as any)).toThrowError();
   });
 
   test('listeners on actions should work properly', done => {
-    const listener = (store, change) => {
-      expect(store).toEqual({ actions: [], foo: 'bar' });
-      expect(change).toEqual({ action: 'FOO', changes: [{ foo: 'bar' }] });
+    const listener = (state, change) => {
+      expect(state).toEqual({ actions: [], foo: 'bar' });
+      expect(change).toEqual({ action: 'FOO', changes: { foo: 'bar' } });
       done();
 
-      kxStore.removeStorageListener(listener);
+      store.removeStorageListener(listener);
     };
 
-    kxStore.clear();
-    kxStore.addStorageListener(listener);
+    store.clear();
+    store.addStorageListener(listener);
 
-    kxStore.dispatch({ type: 'FOO' });
+    store.dispatch({ type: 'FOO' });
   });
 
   test('listeners on update storage should work properly', done => {
-    const listener = (store, change) => {
-      expect(store).toEqual({ actions: [], test: 'test' });
-      expect(change).toEqual({ action: null, changes: [{ test: 'test' }] });
+    const listener = (state, change) => {
+      expect(state).toEqual({ actions: [], test: 'test' });
+      expect(change).toEqual({ action: null, changes: { test: 'test' } });
       done();
 
-      kxStore.removeStorageListener(listener);
+      store.removeStorageListener(listener);
     };
 
-    kxStore.clear();
-    kxStore.addStorageListener(listener);
+    store.clear();
+    store.addStorageListener(listener);
 
-    kxStore.update({ test: 'test' });
+    store.update({ test: 'test' });
   });
 
   test('listeners on clear storage should work properly', done => {
-    const listener = (store, change) => {
-      expect(store).toEqual({ actions: [] });
-      expect(change).toEqual({ action: null, changes: [{ actions: [], test: undefined }] });
+    const listener = (state, change) => {
+      expect(state).toEqual({ actions: [] });
+      expect(change).toEqual({ action: null, changes: { actions: [], test: undefined } });
       done();
 
-      kxStore.removeStorageListener(listener);
+      store.removeStorageListener(listener);
     };
 
-    kxStore.clear();
-    kxStore.update({ test: 'test' });
-    kxStore.addStorageListener(listener);
+    store.clear();
+    store.update({ test: 'test' });
+    store.addStorageListener(listener);
 
-    kxStore.clear();
+    store.clear();
   });
 });

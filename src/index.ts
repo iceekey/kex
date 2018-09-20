@@ -1,3 +1,3 @@
-export { kxStore } from './internal/storage';
+export { store } from './internal/storage';
 export { applyModifiers } from './internal/apply-modifiers';
-export { resolveModifiers } from './internal/resolve-modifiers';
+export { resolveModifier } from './internal/resolve-modifier';
