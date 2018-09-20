@@ -3,8 +3,7 @@ src
 .editorconfig
 .prettierrc.json
 .travis.yml
-README.md
-test.js
+test.ts
 jest.config.js
 tslint.json
 tsconfig.json
