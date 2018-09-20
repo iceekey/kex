@@ -72,7 +72,7 @@ const changeLoginModifier = {
 applyModifiers(state, changeLoginModifier);
 ```
 
-As you can see, modifiers may contain only changes we want to apply to our state. `applyModifiers` word recursively and merge any level change right into your state.
+As you can see, modifiers may contain only changes we want to apply to our state rather than whole state. `applyModifiers` works recursively and merge change of any level right into your state.
 
 A typical reducer may look like this:
 
@@ -93,7 +93,7 @@ const function* reducer(action: KxAction) {
 }
 ```
 
-Also Kex allows you to create *chainable actions*. This means that your reducer may dispatch actions on its own. To do that you should use actions field on the top of your state:
+Also Kex allows you to create *chainable actions*. This means that your reducer may dispatch actions on its own. To do that you should use `actions` field on the top of your state:
 
 ```typescript
 const function* reducerWithChainableAction(action: KxAction) {
