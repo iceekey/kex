@@ -89,13 +89,13 @@ describe('apply modifiers tests', () => {
 });
 
 describe('resolve modifiers tests', () => {
-  test('resolve modifiers should not throw an error on wrong input', () => {
-    expect(resolveModifiers('42' as any)).resolves.toEqual([]);
-    expect(resolveModifiers(42 as any)).resolves.toEqual([]);
-    expect(resolveModifiers(true as any)).resolves.toEqual([]);
-    expect(resolveModifiers(NaN as any)).resolves.toEqual([]);
-    expect(resolveModifiers(null)).resolves.toEqual([]);
-    expect(resolveModifiers(undefined)).resolves.toEqual([]);
+  test('resolve modifiers should not throw an error on wrong input', async () => {
+    await expect(resolveModifiers('42' as any)).resolves.toEqual([]);
+    await expect(resolveModifiers(42 as any)).resolves.toEqual([]);
+    await expect(resolveModifiers(true as any)).resolves.toEqual([]);
+    await expect(resolveModifiers(NaN as any)).resolves.toEqual([]);
+    await expect(resolveModifiers(null)).resolves.toEqual([]);
+    await expect(resolveModifiers(undefined)).resolves.toEqual([]);
   });
 
   test('resolve modifiers should pass invalid or empty iterable', () => {
@@ -149,31 +149,46 @@ describe('storage tests', () => {
     expect(kxStore.get()).toEqual({ actions: [] });
   });
 
-  kxStore.replaceReducers(
-    function*(action: KxAction) {
-      if (action.type !== 'FOO') {
-        return;
-      }
+  test('replace reducers should error on wrong input', () => {
+    expect(() => kxStore.replaceReducers('42' as any)).toThrowError();
+    expect(() => kxStore.replaceReducers(42 as any)).toThrowError();
+    expect(() => kxStore.replaceReducers(true as any)).toThrowError();
+    expect(() => kxStore.replaceReducers(NaN as any)).toThrowError();
+    expect(() => kxStore.replaceReducers(null)).toThrowError();
+    expect(() => kxStore.replaceReducers(undefined)).toThrowError();
+    expect(() => kxStore.replaceReducers([] as any)).toThrowError();
+    expect(() => kxStore.replaceReducers({} as any)).toThrowError();
+  });
 
-      yield { foo: 'bar' };
-    },
-    function*(action: KxAction) {
-      if (action.type !== 'SET') {
-        return;
-      }
+  test('replace reducers should work properly', () => {
+    expect(
+      kxStore.replaceReducers(
+        function*(action: KxAction) {
+          if (action.type !== 'FOO') {
+            return;
+          }
 
-      yield Promise.resolve({ bar: action.payload });
-    },
-    function*(action: KxAction) {
-      if (action.type !== 'INVOKE') {
-        return;
-      }
+          yield { foo: 'bar' };
+        },
+        function*(action: KxAction) {
+          if (action.type !== 'SET') {
+            return;
+          }
 
-      yield Promise.resolve({
-        actions: action.payload
-      });
-    }
-  );
+          yield Promise.resolve({ bar: action.payload });
+        },
+        function*(action: KxAction) {
+          if (action.type !== 'INVOKE') {
+            return;
+          }
+
+          yield Promise.resolve({
+            actions: action.payload
+          });
+        }
+      )
+    ).toBe(kxStore);
+  });
 
   test('storage dispatch should throw an error in case of wrong input', async () => {
     await expect(kxStore.dispatch('42' as any)).rejects.toThrowError();
@@ -211,7 +226,7 @@ describe('storage tests', () => {
     expect(
       await kxStore.dispatch({
         type: 'INVOKE',
-        payload: [{ type: 'SET', payload: 'foos' }, { type: 'SET', payload: 'test' }, { type: 'FOO' }]
+        payload: [{ type: 'SET', payload: 'foo' }, { type: 'SET', payload: 'test' }, { type: 'FOO' }]
       })
     ).toEqual({
       foo: 'bar',
@@ -220,80 +235,148 @@ describe('storage tests', () => {
     });
   });
 
-  // test('storage dispatch should error if actoins are not valid', () => {
-  //   kxStore.clear();
+  test('storage dispatch should error if actoins are not valid', async () => {
+    kxStore.clear();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: '42'
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: '42'
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: 42
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: 42
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: true
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: true
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: NaN
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: NaN
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: null
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: null
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: undefined
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: undefined
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: {}
-  //     })
-  //   ).rejects.toThrowError();
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: {}
+      })
+    ).rejects.toThrowError();
 
-  //   expect(
-  //     kxStore.dispatch({
-  //       type: 'INVOKE',
-  //       payload: () => {}
-  //     })
-  //   ).rejects.toThrowError();
-  // });
+    await expect(
+      kxStore.dispatch({
+        type: 'INVOKE',
+        payload: () => {}
+      })
+    ).rejects.toThrowError();
+  });
 
-  // test('history should work properly', () => {
-  //   kxStore.setHistoryMaxSize(3);
-  //   kxStore.clear();
+  test('change history max size should throw an error on wrong input', async () => {
+    expect(() => kxStore.setHistoryMaxSize('42' as any)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize(true as any)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize(NaN as any)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize(null)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize(undefined)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize([] as any)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize({} as any)).toThrowError();
+    expect(() => kxStore.setHistoryMaxSize((() => {}) as any)).toThrowError();
+  });
 
-  //   expect(
-  //     kxStore.dispatch({ type: 'FOO' }).then(() => {
-  //       kxStore.update({ test: 'test' });
-  //       kxStore.clear();
-  //       return Promise.resolve(kxStore.history());
-  //     })
-  //   ).resolves.toEqual([
-  //     { action: 'FOO', changes: [{ foo: 'bar' }] },
-  //     { action: null, changes: [{ test: 'test' }] },
-  //     { action: null, changes: [{ foo: undefined, test: undefined }] }
-  //   ]);
-  // });
+  test('history should work properly', async () => {
+    kxStore.setHistoryMaxSize(3);
+    kxStore.clear();
+
+    await expect(
+      kxStore.dispatch({ type: 'FOO' }).then(() => {
+        kxStore.update({ test: 'test' });
+        kxStore.clear();
+        return Promise.resolve(kxStore.history());
+      })
+    ).resolves.toEqual([
+      { action: null, changes: [{ actions: [], foo: undefined, test: undefined }] },
+      { action: null, changes: [{ test: 'test' }] },
+      { action: 'FOO', changes: [{ foo: 'bar' }] }
+    ]);
+  });
+
+  test('listeners should throw an error on wrong input', () => {
+    expect(() => kxStore.addStorageListener('42' as any)).toThrowError();
+    expect(() => kxStore.addStorageListener(42 as any)).toThrowError();
+    expect(() => kxStore.addStorageListener(true as any)).toThrowError();
+    expect(() => kxStore.addStorageListener(NaN as any)).toThrowError();
+    expect(() => kxStore.addStorageListener(null)).toThrowError();
+    expect(() => kxStore.addStorageListener(undefined)).toThrowError();
+    expect(() => kxStore.addStorageListener([] as any)).toThrowError();
+    expect(() => kxStore.addStorageListener({} as any)).toThrowError();
+  });
+
+  test('listeners on actions should work properly', done => {
+    const listener = (store, change) => {
+      expect(store).toEqual({ actions: [], foo: 'bar' });
+      expect(change).toEqual({ action: 'FOO', changes: [{ foo: 'bar' }] });
+      done();
+
+      kxStore.removeStorageListener(listener);
+    };
+
+    kxStore.clear();
+    kxStore.addStorageListener(listener);
+
+    kxStore.dispatch({ type: 'FOO' });
+  });
+
+  test('listeners on update storage should work properly', done => {
+    const listener = (store, change) => {
+      expect(store).toEqual({ actions: [], test: 'test' });
+      expect(change).toEqual({ action: null, changes: [{ test: 'test' }] });
+      done();
+
+      kxStore.removeStorageListener(listener);
+    };
+
+    kxStore.clear();
+    kxStore.addStorageListener(listener);
+
+    kxStore.update({ test: 'test' });
+  });
+
+  test('listeners on clear storage should work properly', done => {
+    const listener = (store, change) => {
+      expect(store).toEqual({ actions: [] });
+      expect(change).toEqual({ action: null, changes: [{ actions: [], test: undefined }] });
+      done();
+
+      kxStore.removeStorageListener(listener);
+    };
+
+    kxStore.clear();
+    kxStore.update({ test: 'test' });
+    kxStore.addStorageListener(listener);
+
+    kxStore.clear();
+  });
 });

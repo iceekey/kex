@@ -115,12 +115,12 @@ class KxStorage<T = any> {
     }
 
     if (this._state.actions.length > 0) {
-      const nextAction = this._state.actions.pop();
+      const nextAction = this._state.actions[0];
 
+      this._state.actions = this._state.actions.filter(action => action !== nextAction);
       this._broadcastChange({ action: action.type, changes: resolvedModifiers });
 
-      console.log(nextAction);
-      return this.dispatch(nextAction);
+      return await this.dispatch(nextAction);
     }
 
     this._broadcastChange({ action: action.type, changes: resolvedModifiers });
@@ -129,7 +129,7 @@ class KxStorage<T = any> {
   }
 
   setHistoryMaxSize(size: number) {
-    if (typeof size !== 'number') {
+    if (typeof size !== 'number' || isNaN(size)) {
       throw new Error('history size should be a number');
     }
 
