@@ -26,7 +26,7 @@ Actions is objects that contain `type` and `payload` field:
 You can dipatch action using `dispatch` method:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 const dispatcher = store.dispatch(action);
 
@@ -53,7 +53,7 @@ const state = {
 and we want to change `login` field to something else:
 
 ```typescript
-import { applyModifiers } from 'kx'; // apply modifiers to specific object
+import { applyModifiers } from 'kex'; // apply modifiers to specific object
 
 const changeLoginModifier = {
   credentials: {
@@ -123,7 +123,7 @@ const function* reducerWithChainableAction(action: KxAction) {
 To set reducers use `replaceReducers` method:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 store.replaceReducers(...reducers);
 ```
@@ -143,7 +143,7 @@ store.get();
 To modify your state without actions you may use `update` method:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 store.update(modifier);
 ```
@@ -151,7 +151,7 @@ store.update(modifier);
 You can subscribe to state changes using `addStorageListener` (and cancel the subscription using `removeStorageListener` method):
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 const listener = (state, change) => {
   console.log(change.action === null ? 'Changed manually' : `By ${change.action} action`);
@@ -175,7 +175,7 @@ store.history(); // will return 10 last actions
 To clear your state use `clear` method:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 store.clear();
 ```
