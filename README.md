@@ -135,7 +135,7 @@ Reducers order in array actually matters because *resolving process in linear*. 
 You can import storage at any point of your application. Use method `get` to get current state:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 store.get();
 ```
@@ -165,7 +165,7 @@ store.removeStorageListener(listener);
 You also can get history of state change using `history()` method:
 
 ```typescript
-import { store } from 'kx';
+import { store } from 'kex';
 
 store.setHistoryMaxSize(10); // 10 is default value
 
