@@ -1,3 +1,9 @@
 export { store } from './internal/storage';
 export { applyModifiers } from './internal/apply-modifiers';
 export { resolveModifier } from './internal/resolve-modifier';
+export { KxAction } from './internal/action';
+export { KxListener } from './internal/listener';
+export { KxChange } from './internal/change';
+export { KxModifier } from './internal/modifier';
+export { KxReducer } from './internal/reducer';
+export { KxResolvedModifier } from './internal/resolved-modifier';
