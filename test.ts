@@ -122,14 +122,14 @@ describe('storage tests', () => {
     store.update({ foo: 'foo' });
     store.update({ bar: 'bar' });
 
-    expect(store.get()).toEqual({ foo: 'foo', bar: 'bar', actions: [] });
+    expect(store.getState()).toEqual({ foo: 'foo', bar: 'bar', actions: [] });
   });
 
   test('storage should clear properly', () => {
     store.update({ foo: 'foo', bar: 'bar' });
     store.clear();
 
-    expect(store.get()).toEqual({ actions: [] });
+    expect(store.getState()).toEqual({ actions: [] });
   });
 
   test('replace reducers should error on wrong input', () => {
@@ -169,7 +169,7 @@ describe('storage tests', () => {
             return;
           }
 
-          const { bar } = store.get();
+          const { bar } = store.getState();
 
           yield new Promise(resolve => {
             setTimeout(() => {
