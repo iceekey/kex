@@ -7,8 +7,8 @@ import { KxChange } from './change';
 import { applyModifiers } from './apply-modifiers';
 import { resolveModifier } from './resolve-modifier';
 
-class KxStorage<T = any> {
-  private _reducers: KxReducer<T>[] = [];
+class KxStore {
+  private _reducers: KxReducer<any>[] = [];
   private _listeners: KxListener[] = [];
   private _state: any = {
     actions: []
@@ -35,11 +35,11 @@ class KxStorage<T = any> {
     return this._history;
   }
 
-  get(): T {
-    return this._state as T;
+  getState(): object {
+    return this._state;
   }
 
-  update(resolvedModifier: KxResolvedModifier<T>): T {
+  update(resolvedModifier: KxResolvedModifier<any>): object {
     this._state = applyModifiers(this._state, resolvedModifier);
 
     this._broadcastChange({
@@ -70,7 +70,7 @@ class KxStorage<T = any> {
     return this.update(clearModifier);
   }
 
-  replaceReducers(...nextReducers: KxReducer<T>[]): KxStorage<T> {
+  replaceReducers(...nextReducers: KxReducer<any>[]): KxStore {
     for (let reducer of nextReducers) {
       if (typeof reducer !== 'function') {
         throw new Error('reducer should be a function');
@@ -82,7 +82,7 @@ class KxStorage<T = any> {
     return this;
   }
 
-  addStorageListener(listener: KxListener): KxStorage<T> {
+  addStorageListener(listener: KxListener): KxStore {
     if (typeof listener !== 'function') {
       throw new Error('storage listener should be a function');
     }
@@ -92,13 +92,13 @@ class KxStorage<T = any> {
     return this;
   }
 
-  removeStorageListener(listener: Function): KxStorage<T> {
+  removeStorageListener(listener: Function): KxStore {
     this._listeners = this._listeners.filter(l => l !== listener);
 
     return this;
   }
 
-  async dispatch(action: KxAction): Promise<T> {
+  async dispatch(action: KxAction): Promise<object> {
     if (!isObject(action)) {
       throw new Error('action should be an object');
     }
@@ -143,4 +143,4 @@ class KxStorage<T = any> {
   }
 }
 
-export const store = new KxStorage();
+export const store = new KxStore();
