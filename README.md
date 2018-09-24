@@ -100,7 +100,7 @@ const function* reducerWithChainableAction(action: KxAction) {
   switch (action.type) {
     ...
     case 'chainable_action':
-      const { actions } = store.get()
+      const { actions } = store.getState()
 
       yield {
         some: 'changes',
@@ -137,7 +137,7 @@ You can import storage at any point of your application. Use method `get` to get
 ```typescript
 import { store } from 'kex';
 
-store.get();
+store.getState();
 ```
 
 To modify your state without actions you may use `update` method:
@@ -193,7 +193,7 @@ store.clear();
   })
 
   const function* counterReducer(action: KxAction) {
-    const { counter } = kxStore.get();
+    const { counter } = kxStore.getState();
     
     switch (action.type) {
       case 'INCREMENT':
