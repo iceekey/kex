@@ -169,7 +169,7 @@ describe('storage tests', () => {
             return;
           }
 
-          const { bar } = store.getState();
+          const { bar } = store.getState() as any;
 
           yield new Promise(resolve => {
             setTimeout(() => {
