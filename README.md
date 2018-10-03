@@ -18,12 +18,12 @@ Actions is objects that contain `type` and `payload` field:
 
 ```
 {
-  type: stirng;
+  type: string;
   payload?: any;
 }
 ```
 
-You can dipatch action using `dispatch` method:
+You can dispatch action using `dispatch` method:
 
 ```typescript
 import { store } from 'kex';
@@ -132,7 +132,7 @@ Reducers order in array actually matters because *resolving process in linear*. 
 
 ## State
 
-You can import storage at any point of your application. Use method `get` to get current state:
+You can import storage at any point of your application. Use method `getState` to get current state:
 
 ```typescript
 import { store } from 'kex';
@@ -168,7 +168,6 @@ You also can get history of state change using `history()` method:
 import { store } from 'kex';
 
 store.setHistoryMaxSize(10); // 10 is default value
-
 store.history(); // will return 10 last actions
 ```
 
