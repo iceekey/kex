@@ -12,7 +12,12 @@ export function applyModifiers<T>(obj: T, ...resolvedModifiers: KxResolvedModifi
     }
 
     for (let key in resolvedModifier) {
-      if (!Object.prototype.hasOwnProperty.call(obj, key) || !isObject(obj[key]) || !isObject(resolvedModifier[key])) {
+      if (
+        !Object.prototype.hasOwnProperty.call(obj, key) ||
+        !isObject(obj[key]) ||
+        !isObject(resolvedModifier[key]) ||
+        obj[key] instanceof Date
+      ) {
         if (resolvedModifier[key] === undefined) {
           delete obj[key];
 
