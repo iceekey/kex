@@ -19,7 +19,7 @@ class KxStore {
 
   constructor() {}
 
-  private _broadcastChange(change: KxChange) {
+  private _broadcastChange(change: KxChange): void {
     this._history = [change, ...this._history];
 
     while (this._history.length > this._historyMaxSize) {
@@ -50,7 +50,7 @@ class KxStore {
     return this._state;
   }
 
-  clear() {
+  clear(): void {
     const clearModifier = Object.create(null);
 
     for (let key in this._state) {
