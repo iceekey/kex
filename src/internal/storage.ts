@@ -35,11 +35,11 @@ class KxStore {
     return this._history;
   }
 
-  getState(): object {
+  getState<T = any>(): T {
     return this._state;
   }
 
-  update(resolvedModifier: KxResolvedModifier<any>): object {
+  update<T = any>(resolvedModifier: KxResolvedModifier<T>): T {
     this._state = applyModifiers(this._state, resolvedModifier);
 
     this._broadcastChange({
@@ -98,7 +98,7 @@ class KxStore {
     return this;
   }
 
-  async dispatch(action: KxAction): Promise<object> {
+  async dispatch<T = any>(action: KxAction): Promise<any> {
     if (!isObject(action)) {
       throw new Error('action should be an object');
     }
@@ -134,7 +134,7 @@ class KxStore {
     return this._state;
   }
 
-  setHistoryMaxSize(size: number) {
+  setHistoryMaxSize(size: number): void {
     if (typeof size !== 'number' || isNaN(size)) {
       throw new Error('history size should be a number');
     }
