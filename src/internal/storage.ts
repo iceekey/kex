@@ -82,7 +82,7 @@ class KxStore {
     return this;
   }
 
-  addStorageListener(listener: KxListener): KxStore {
+  addStorageListener<T = any>(listener: KxListener<T>): KxStore {
     if (typeof listener !== 'function') {
       throw new Error('storage listener should be a function');
     }
@@ -92,13 +92,13 @@ class KxStore {
     return this;
   }
 
-  removeStorageListener(listener: Function): KxStore {
+  removeStorageListener<T>(listener: KxListener<T>): KxStore {
     this._listeners = this._listeners.filter(l => l !== listener);
 
     return this;
   }
 
-  async dispatch<T = any>(action: KxAction): Promise<any> {
+  async dispatch<T = any>(action: KxAction): Promise<T> {
     if (!isObject(action)) {
       throw new Error('action should be an object');
     }

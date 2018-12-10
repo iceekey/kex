@@ -1,3 +1,3 @@
 import { KxChange } from './change';
 
-export type KxListener = (state: any, change: KxChange) => any;
+export type KxListener<T = any> = (state: T, change: KxChange) => any;
