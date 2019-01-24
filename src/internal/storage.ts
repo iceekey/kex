@@ -41,7 +41,7 @@ class KxStore {
     return this._state as KxState<T>;
   }
 
-  getCache<T>(key: string, token?: any): null | KxState<T> {
+  getCache<T>(key: string, token?: any): null | T {
     if (typeof key !== 'string') {
       throw new Error('cache key should be string');
     }
