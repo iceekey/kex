@@ -122,14 +122,14 @@ describe('storage tests', () => {
     store.update({ foo: 'foo' });
     store.update({ bar: 'bar' });
 
-    expect(store.getState()).toEqual({ foo: 'foo', bar: 'bar', actions: [] });
+    expect(store.getState()).toEqual({ foo: 'foo', bar: 'bar', actions: [], cache: {} });
   });
 
   test('storage should clear properly', () => {
-    store.update({ foo: 'foo', bar: 'bar' });
+    store.update({ foo: 'foo', bar: 'bar', cache: { foo: 'bar' }, actions: [{ type: 'INVOKE' }] });
     store.clear();
 
-    expect(store.getState()).toEqual({ actions: [] });
+    expect(store.getState()).toEqual({ actions: [], cache: {} });
   });
 
   test('replace reducers should error on wrong input', () => {
@@ -209,7 +209,7 @@ describe('storage tests', () => {
   });
 
   test('storage dispatch should work properly on simple actions', async () => {
-    expect(await store.dispatch({ type: 'FOO' })).toEqual({ foo: 'bar', actions: [] });
+    expect(await store.dispatch({ type: 'FOO' })).toEqual({ foo: 'bar', actions: [], cache: {} });
   });
 
   test('storage dispatch should work properly on actions with payload', async () => {
@@ -217,7 +217,8 @@ describe('storage tests', () => {
       foo: 'bar',
       bar: '250',
       baz: '250',
-      actions: []
+      actions: [],
+      cache: {}
     });
   });
 
@@ -233,7 +234,8 @@ describe('storage tests', () => {
       foo: 'bar',
       bar: '250',
       baz: '250',
-      actions: []
+      actions: [],
+      cache: {}
     });
   });
 
@@ -312,6 +314,8 @@ describe('storage tests', () => {
     store.setHistoryMaxSize(3);
     store.clear();
 
+    console.log(store.getState());
+
     await expect(
       store.dispatch({ type: 'FOO' }).then(() => {
         store.update({ test: 'test' });
@@ -338,7 +342,7 @@ describe('storage tests', () => {
 
   test('listeners on actions should work properly', done => {
     const listener = (state, change) => {
-      expect(state).toEqual({ actions: [], foo: 'bar' });
+      expect(state).toEqual({ actions: [], cache: {}, foo: 'bar' });
       expect(change).toEqual({ action: 'FOO', changes: { foo: 'bar' } });
       done();
 
@@ -353,7 +357,7 @@ describe('storage tests', () => {
 
   test('listeners on update storage should work properly', done => {
     const listener = (state, change) => {
-      expect(state).toEqual({ actions: [], test: 'test' });
+      expect(state).toEqual({ actions: [], cache: {}, test: 'test' });
       expect(change).toEqual({ action: null, changes: { test: 'test' } });
       done();
 
@@ -368,7 +372,7 @@ describe('storage tests', () => {
 
   test('listeners on clear storage should work properly', done => {
     const listener = (state, change) => {
-      expect(state).toEqual({ actions: [] });
+      expect(state).toEqual({ actions: [], cache: {} });
       expect(change).toEqual({ action: null, changes: { actions: [], test: undefined } });
       done();
 
@@ -380,5 +384,65 @@ describe('storage tests', () => {
     store.addStorageListener(listener);
 
     store.clear();
+  });
+});
+
+describe('cache tests', () => {
+  test('storage should clear cache properly', () => {
+    store.clear();
+    store.update({ foo: 'bar', actions: [{ type: 'INVOKE' }], cache: { foo: 'bar' } });
+    store.clearCache();
+
+    expect(store.getState()).toEqual({ foo: 'bar', actions: [{ type: 'INVOKE' }], cache: {} });
+  });
+
+  test('set cache should error on wrong key', () => {
+    store.clear();
+    expect(() => store.setCache(42 as any, undefined)).toThrowError();
+    expect(() => store.setCache(true as any, undefined)).toThrowError();
+    expect(() => store.setCache(NaN as any, undefined)).toThrowError();
+    expect(() => store.setCache(null, undefined)).toThrowError();
+    expect(() => store.setCache(undefined, undefined)).toThrowError();
+    expect(() => store.setCache([] as any, undefined)).toThrowError();
+    expect(() => store.setCache({} as any, undefined)).toThrowError();
+  });
+
+  test('get cache should error on wrong key', () => {
+    store.clear();
+    expect(() => store.getCache(42 as any)).toThrowError();
+    expect(() => store.getCache(true as any)).toThrowError();
+    expect(() => store.getCache(NaN as any)).toThrowError();
+    expect(() => store.getCache(null)).toThrowError();
+    expect(() => store.getCache(undefined)).toThrowError();
+    expect(() => store.getCache([] as any)).toThrowError();
+    expect(() => store.getCache({} as any)).toThrowError();
+  });
+
+  test('set cache should work properly', () => {
+    store.clear();
+    store.setCache('foo', 'foo_value');
+    store.setCache('bar', 'bar_value', 'bar_token');
+    store.setCache('baz', 'baz_value', 'baz_token');
+    store.setCache('baz', 'baz_updated_value', 'baz_token');
+    store.setCache('test', 'test_value', 'test_token');
+    store.setCache('test', 'test_updated_value', 'test_updated_token');
+
+    expect(store.getState()).toEqual({
+      actions: [],
+      cache: {
+        foo: { token: undefined, value: 'foo_value' },
+        bar: { token: 'bar_token', value: 'bar_value' },
+        baz: { token: 'baz_token', value: 'baz_updated_value' },
+        test: { token: 'test_updated_token', value: 'test_updated_value' }
+      }
+    });
+  });
+
+  test('get cache should work properly', () => {
+    expect(store.getCache('foo')).toEqual('foo_value');
+    expect(store.getCache('foo', 'bar')).toEqual(null);
+    expect(store.getCache('bar')).toEqual(null);
+    expect(store.getCache('bar', 'bar_token')).toEqual('bar_value');
+    expect(store.getCache('bar', 'wrong_bar_token')).toEqual(null);
   });
 });

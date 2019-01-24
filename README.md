@@ -221,6 +221,51 @@ store.clear();
 
 ```
 
+## Cache
+
+Kex also support cache feature (key-value storage inside your state). You can change cache manually using `dispatch` and `update` methods but we strongly recommend to use `setCache` method insted. You can get your cache records using `getCache` method:
+
+```typescript
+  import { store } from 'kex';
+
+  store.setCache('key', 'value'); // save key-value pair in cache (token === undefined)
+
+  // You can use tokens to invalidate cache after token expires or changes
+  store.setCache('foo', 'bar', 'token') // save key-value pair in cache (token === 'token')
+
+  /*
+   * After this state will look like this:
+   *  {
+   *    actions: [],
+   *    cache: {
+   *      key: {
+   *        token: undefined,
+   *        value: 'value'
+   *      },
+   *      foo: {
+   *        token: 'token',
+   *        value: 'bar'
+   *      }
+   *    }
+   *  }
+   * 
+   */
+
+  store.getCache('wrong_key') // null
+  store.getCache('key'); // 'value'
+  
+  store.getCache('foo'); // null
+  store.getCache('foo', 'token') // 'bar'
+  store.getCache('foo', 'wrong_token') // null
+
+  // You can change token and value any time
+  store.setCache('foo', 'baz', 'token');
+  store.getCache('foo', 'token'); // 'baz'
+
+  store.setCache('foo', 'new_baz', 'new_token');
+  store.getCache('foo', 'new_token'); // 'new_baz'
+```
+
 ## Contributing
 
 If you want to contribute to project please contact me. I'm open to discuss the concept.

@@ -6,11 +6,13 @@ import { KxListener } from './listener';
 import { KxChange } from './change';
 import { applyModifiers } from './apply-modifiers';
 import { resolveModifier } from './resolve-modifier';
+import { KxState } from './state';
 
 class KxStore {
-  private _reducers: KxReducer<any>[] = [];
+  private _reducers: KxReducer<KxState>[] = [];
   private _listeners: KxListener[] = [];
-  private _state: any = {
+  private _state: KxState = {
+    cache: {},
     actions: []
   };
 
@@ -35,22 +37,52 @@ class KxStore {
     return this._history;
   }
 
-  getState<T = any>(): T {
-    return this._state;
+  getState<T>(): KxState<T> {
+    return this._state as KxState<T>;
   }
 
-  update<T = any>(resolvedModifier: KxResolvedModifier<T>): T {
-    this._state = applyModifiers(this._state, resolvedModifier);
+  getCache<T>(key: string, token?: any): null | KxState<T> {
+    if (typeof key !== 'string') {
+      throw new Error('cache key should be string');
+    }
+
+    if (!isObject(this._state.cache)) {
+      return null;
+    }
+
+    const cache = this._state.cache[key];
+
+    if (cache === undefined) {
+      return null;
+    }
+
+    if (cache.token === token) {
+      return cache.value;
+    }
+
+    return null;
+  }
+
+  setCache<T>(key: string, value: any, token?: any): Partial<T> {
+    if (typeof key !== 'string') {
+      throw new Error('cache key should be string');
+    }
+
+    return this.update<T>({ cache: { [key]: { token, value } } } as KxState<T>);
+  }
+
+  update<T>(resolvedModifier: KxResolvedModifier<KxState<T>>): KxState<T> {
+    this._state = applyModifiers<KxState<T>>(this._state as KxState<T>, resolvedModifier);
 
     this._broadcastChange({
       action: null,
       changes: resolvedModifier
     } as KxChange);
 
-    return this._state;
+    return this._state as KxState<T>;
   }
 
-  clear(): void {
+  clear<T>(): KxState<T> {
     const clearModifier = Object.create(null);
 
     for (let key in this._state) {
@@ -64,7 +96,45 @@ class KxStore {
         continue;
       }
 
+      if (key === 'cache') {
+        for (let cacheKey in this._state.cache) {
+          if (!Object.prototype.hasOwnProperty.call(this._state.cache, cacheKey)) {
+            continue;
+          }
+
+          if (!isObject(clearModifier[key])) {
+            clearModifier[key] = {};
+          }
+
+          clearModifier[key][cacheKey] = undefined;
+        }
+
+        continue;
+      }
+
       clearModifier[key] = undefined;
+    }
+
+    return this.update(clearModifier);
+  }
+
+  clearCache<T>(): KxState<T> {
+    const clearModifier = Object.create(null);
+
+    if (!isObject(this._state.cache)) {
+      clearModifier.cache = undefined;
+    } else {
+      for (let cacheKey in this._state.cache) {
+        if (!Object.prototype.hasOwnProperty.call(this._state.cache, cacheKey)) {
+          continue;
+        }
+
+        if (!isObject(clearModifier.cache)) {
+          clearModifier.cache = {};
+        }
+
+        clearModifier.cache[cacheKey] = undefined;
+      }
     }
 
     return this.update(clearModifier);
@@ -82,7 +152,7 @@ class KxStore {
     return this;
   }
 
-  addStorageListener<T = any>(listener: KxListener<T>): KxStore {
+  addStorageListener(listener: KxListener): KxStore {
     if (typeof listener !== 'function') {
       throw new Error('storage listener should be a function');
     }
@@ -92,13 +162,13 @@ class KxStore {
     return this;
   }
 
-  removeStorageListener<T>(listener: KxListener<T>): KxStore {
+  removeStorageListener(listener: KxListener): KxStore {
     this._listeners = this._listeners.filter(l => l !== listener);
 
     return this;
   }
 
-  async dispatch<T = any>(action: KxAction): Promise<T> {
+  async dispatch<T>(action: KxAction): Promise<KxState<T>> {
     if (!isObject(action)) {
       throw new Error('action should be an object');
     }
@@ -110,10 +180,10 @@ class KxStore {
     let changes = Object.create(null);
 
     for (let reducer of this._reducers) {
-      const resolvedModifiers = await resolveModifier(reducer(action));
+      const resolvedModifiers = await resolveModifier<KxState<T>>((reducer as KxReducer<KxState<T>>)(action));
 
-      this._state = applyModifiers(this._state, ...resolvedModifiers);
-      changes = applyModifiers(changes, ...resolvedModifiers);
+      this._state = applyModifiers<KxState<T>>(this._state as KxState<T>, ...resolvedModifiers);
+      changes = applyModifiers<KxState<T>>(changes, ...resolvedModifiers);
     }
 
     if (!Array.isArray(this._state.actions)) {
@@ -131,7 +201,7 @@ class KxStore {
 
     this._broadcastChange({ action: action.type, changes });
 
-    return this._state;
+    return this._state as KxState<T>;
   }
 
   setHistoryMaxSize(size: number): void {
