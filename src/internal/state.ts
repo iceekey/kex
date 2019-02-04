@@ -1,3 +1,3 @@
 import { KxAction } from './action';
 
-export type KxState<T = any> = { actions: KxAction[]; cache: object } & Partial<T>;
+export type KxState<T = any> = { actions?: KxAction[]; cache?: object } & Partial<T>;
