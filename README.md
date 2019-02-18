@@ -2,6 +2,11 @@
 
 Kex is a tiny library for state managenent in JavaScript/TypeScript projects.
 
+* Small and fast
+* Zero dependencies
+* Async actions, cache, *chainable actions* out of box
+* Written on Typescript
+
 ## Installation is simple and plain
 
 ```bash
@@ -26,8 +31,9 @@ Actions is objects that contain `type` and `payload` field:
 You can dispatch action using `dispatch` method:
 
 ```typescript
-import { store } from 'kex';
+import { createStore } from 'kex';
 
+const store = createStore();
 const dispatcher = store.dispatch(action);
 
 // will print current state after action finishes
