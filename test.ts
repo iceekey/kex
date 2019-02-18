@@ -1,5 +1,7 @@
-import { applyModifiers, resolveModifier, store } from './src';
+import { applyModifiers, resolveModifier, createStore } from './src';
 import { KxAction } from './src/internal/action';
+
+const store = createStore();
 
 describe('apply modifiers tests', () => {
   test('apply modifiers should not thow an error if first argument is not an object', () => {

@@ -7,13 +7,13 @@
       "es2015",
       "esnext.asynciterable"
     ],
-    "target": "es5",
+    "target": "es2015",
     "declaration": true,
     "outDir": "./dist",
     "downlevelIteration": true,
     "sourceMap": true
   },
-  "include": [
-    "./src/**/*.ts"
+  "files": [
+    "./src/index.ts"
   ]
 }

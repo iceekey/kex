@@ -123,7 +123,9 @@ const function* reducerWithChainableAction(action: KxAction) {
 To set reducers use `replaceReducers` method:
 
 ```typescript
-import { store } from 'kex';
+import { createStore } from 'kex';
+
+const store = createStore();
 
 store.replaceReducers(...reducers);
 ```
@@ -135,7 +137,9 @@ Reducers order in array actually matters because *resolving process in linear*. 
 You can import storage at any point of your application. Use method `getState` to get current state:
 
 ```typescript
-import { store } from 'kex';
+import { createStore } from 'kex';
+
+const store = createStore();
 
 store.getState();
 ```
@@ -143,7 +147,9 @@ store.getState();
 To modify your state without actions you may use `update` method:
 
 ```typescript
-import { store } from 'kex';
+import { createStore } from 'kex';
+
+const store = createStore();
 
 store.update(modifier);
 ```
@@ -151,7 +157,9 @@ store.update(modifier);
 You can subscribe to state changes using `addStorageListener` (and cancel the subscription using `removeStorageListener` method):
 
 ```typescript
-import { store } from 'kex';
+import { createStore } from 'kex';
+
+const store = createStore();
 
 const listener = (state, change) => {
   console.log(change.action === null ? 'Changed manually' : `By ${change.action} action`);
@@ -184,7 +192,9 @@ store.clear();
 ## Example
 
 ```typescript
-  import { store, KxAction } from 'kex';
+  import { createStore, KxAction } from 'kex';
+
+  const store = createStore();
 
   store.update({
     counter: 0,
@@ -226,7 +236,9 @@ store.clear();
 Kex also support cache feature (key-value storage inside your state). You can change cache manually using `dispatch` and `update` methods but we strongly recommend to use `setCache` method insted. You can get your cache records using `getCache` method:
 
 ```typescript
-  import { store } from 'kex';
+  import { createStore } from 'kex';
+
+  const store = createStore();
 
   store.setCache('key', 'value'); // save key-value pair in cache (token === undefined)
 

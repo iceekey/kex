@@ -1,4 +1,4 @@
-export { store } from './internal/storage';
+export { createStore } from './internal/create-store';
 export { applyModifiers } from './internal/apply-modifiers';
 export { resolveModifier } from './internal/resolve-modifier';
 export { KxAction } from './internal/action';

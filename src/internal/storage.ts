@@ -8,7 +8,7 @@ import { applyModifiers } from './apply-modifiers';
 import { resolveModifier } from './resolve-modifier';
 import { KxState } from './state';
 
-class KxStore {
+export class KxStore {
   private _reducers: KxReducer<KxState>[] = [];
   private _listeners: KxListener[] = [];
   private _state: KxState = {
@@ -212,5 +212,3 @@ class KxStore {
     this._historyMaxSize = size;
   }
 }
-
-export const store = new KxStore();
