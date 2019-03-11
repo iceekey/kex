@@ -1,5 +1,11 @@
+# Directories
 node_modules
 dist
 coverage
 
+# Files
 *.log
+
+# System files
+.DS_Store
+Thumbs.db
